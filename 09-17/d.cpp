@@ -2,10 +2,7 @@
 
 using namespace std;
 
-typedef long long lld;
-typedef unsigned long long llu;
-
-map < int, vector<string> > dict;
+map < int, vector<string> > D;
 vector <string> enc;
 char letters[26];
 char used[26];
@@ -22,13 +19,13 @@ int backtrack(int idx) {
     return 1;
   }
   int sz = enc[idx].size();
-  if (dict.find(sz) == dict.end()) {
+  if (D.find(sz) == D.end()) {
     return 0;
   }
   char delta[26];
   memset(delta, 0, sizeof(delta));
-  for (int k = 0; k < dict[sz].size(); k++) {
-    string dw = dict[sz][k];
+  for (int k = 0; k < D[sz].size(); k++) {
+    string dw = D[sz][k];
     int ok = 1;
     for (int i = 0; i < sz && ok; i++) {
       char act = letters[enc[idx][i]-'a'];
@@ -58,6 +55,10 @@ int backtrack(int idx) {
   return 0;
 }
 
+bool cmp(string a, string b) {
+  return a.size() > b.size();
+}
+
 int main() {
   int n;
   cin >> n;
@@ -65,7 +66,7 @@ int main() {
   for (int i = 0; i < n; i++) {
     string word;
     getline(cin, word);
-    dict[word.size()].push_back(word);
+    D[word.size()].push_back(word);
   }
   while (getline(cin, line)) {
     enc.clear();
@@ -77,6 +78,7 @@ int main() {
         enc.push_back(word);
       }
     }
+    sort(enc.begin(), enc.end(), cmp);
     memset(letters, 0, sizeof(letters));
     memset(used, 0, sizeof(used));
     if (!backtrack(0)) {
