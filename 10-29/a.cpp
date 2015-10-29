@@ -2,14 +2,16 @@
 
 using namespace std;
 
-#define NMAX 150
+#define NMAX 192
 
 int n;
 int G[NMAX][NMAX];
 int Ma[NMAX], Mb[NMAX];
+int Pa[NMAX], Pb[NMAX];
 int ma, mb;
 int y[NMAX], z[NMAX];
 int d[NMAX];
+int S[NMAX], T[NMAX];
 
 void init() {
   memset(Ma, -1, sizeof(Ma));
@@ -24,32 +26,119 @@ void init() {
 }
 
 void atualiza_d(int i) {
+  for (int j = 0; j < n; j++) {
+    d[j] = min(d[j], y[i] + z[j] - G[i][j]);
+  }
+}
+
+void atualiza_dual() {
+  int delta = 1<<30;
+  for (int j = 0; j < n; j++) {
+    if (!T[j]) {
+      delta = min(delta, d[j]);
+    }
+  }
+  for (int i = 0; i < n; i++) {
+    if (S[i]) {
+      y[i] -= delta;
+    }
+  }
+  for (int j = 0; j < n; j++) {
+    if (T[j]) {
+      z[j] += delta;
+    } else {
+      d[j] -= delta;
+    }
+  }
 }
 
 void hungarian() {
   init();
-  for (int i = 0; i < n; i++) {
-    set <int> S, T;
-    S.insert(i);
 
-    for (int j = 0; j < n; j++) {
-      d[j] = y[i] + z[j] - G[i][j];
+  while (ma < n) {
+    int i = -1;
+    for (int k = 0; i == -1; k++) {
+      if (Ma[k] == -1) {
+        i = k;
+      }
     }
 
+    memset(S, 0, sizeof(S));
+    memset(T, 0, sizeof(T));
+    S[i] = 1;
+    Pa[i] = -1;
+    queue <int> sq;
+    sq.push(i);
+
+    for (int j = 0; j < n; j++) {
+      d[j] = 1<<30;
+    }
+    atualiza_d(i);
+
     while (1) {
-      // TODO
+      int j = -1;
+      while (!sq.empty() && j == -1) {
+        int u = sq.front();
+        sq.pop();
+        for (int v = 0; v < n; v++) {
+          if (!T[v] && G[u][v] == y[u] + z[v]) {
+            j = v;
+            Pb[j] = u;
+            break;
+          }
+        }
+      }
+      if (j == -1) {
+        atualiza_dual();
+        while (!sq.empty()) {
+          sq.pop();
+        }
+        for (int u = 0; u < n; u++) {
+          if (S[u]) {
+            sq.push(u);
+          }
+        }
+      } else {
+        if (Mb[j] == -1) {
+          while (j != -1) {
+            Mb[j] = Pb[j];
+            Ma[Pb[j]] = j;
+            j = Pa[Pb[j]];
+          }
+          ma++;
+          break;
+        } else {
+          T[j] = 1;
+          if (!S[Mb[j]]) {
+            Pa[Mb[j]] = j;
+            S[Mb[j]] = 1;
+            sq.push(Mb[j]);
+            atualiza_d(Mb[j]);
+          }
+        }
+      }
     }
   }
 }
 
 int main() {
   scanf("%d", &n);
+
+  int output = 0;
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
       scanf("%d", &G[i][j]);
+      output += G[i][j];
     }
   }
 
   hungarian();
+
+  for (int i = 0; i < n; i++) {
+    output -= G[i][Ma[i]];
+  }
+
+  printf("%d\n", output);
+
   return 0;
 }
