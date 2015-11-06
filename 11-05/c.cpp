@@ -8,9 +8,10 @@ int a, b;
 
 vector <int> Ea[NMAX];
 int Ma[NMAX], Mb[NMAX];
-int V[NMAX];
+int U[NMAX], V[NMAX];
 
 int tem_aumento(int u) {
+  U[u] = 1;
   for (int i = 0; i < Ea[u].size(); i++) {
     int v = Ea[u][i];
     if (!V[v]) {
@@ -67,11 +68,23 @@ int main() {
     }
   }
   a = b = n;
-  printf("%d\n", n - emp_max());
+  emp_max();
+  memset(U, 0, sizeof(U));
+  memset(V, 0, sizeof(V));
   for (int i = 0; i < n; i++) {
     if (Ma[i] == -1) {
-      printf("%d ", i+1);
+      tem_aumento(i);
     }
+  }
+  vector <int> out;
+  for (int i = 0; i < n; i++) {
+    if (U[i] && !V[i]) {
+      out.push_back(i+1);
+    }
+  }
+  printf("%d\n", out.size());
+  for (int i = 0; i < out.size(); i++) {
+    printf("%d ", out[i]);
   }
   printf("\n");
   return 0;
